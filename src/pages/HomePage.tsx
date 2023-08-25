@@ -1,5 +1,20 @@
 import React, { useState } from "react";
-import { Layout, Navbar, Label, Button, Input, Typography } from "@components";
+
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+
+import {
+  Layout,
+  Navbar,
+  Label,
+  Button,
+  Input,
+  Typography,
+  Checkbox,
+  FloatingLabelInput,
+} from "@components";
+
 import ImgHeroDonation from "@/assets/hero-donation.svg";
 import ImgHeroVolunteer from "@/assets/hero-volunteer.svg";
 import ImgHeroCommunity from "@/assets/hero-community.svg";
@@ -10,6 +25,7 @@ import IcGardenday from "@/assets/gardenday.svg";
 import IcSprinkle from "@/assets/sprinkle1.svg";
 import IcMaps from "@/assets/map.svg";
 import IcDate from "@/assets/calendar.svg";
+import IcDonate from "@/assets/donate.svg";
 
 const TABS = [
   {
@@ -80,13 +96,54 @@ const VOLUNTEERS = [
   },
 ];
 
-const Home: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<number>(1);
+type FormData = {
+  name: string;
+  email: string;
+  idType?: string;
+  taxRecipientId?: string;
+  taxRecipientFullName?: string;
+  postalCode?: string;
+  address?: string;
+  unitNumber?: string;
+  remarks?: string;
+};
 
+const schema = yup
+  .object({
+    name: yup.string().required("Name is required"),
+    email: yup.string().email("Invalid email").required("Email is required"),
+  })
+  .required();
+
+const Home: React.FC = () => {
+  // states
+  const [activeTab, setActiveTab] = useState<number>(1);
+  const [checkedDonors, setCheckedDonors] = useState<number>(1);
+  const [isTaxDeduction, setTaxDeduction] = useState<boolean>(true);
+
+  // hooks
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: yupResolver(schema),
+  });
+
+  const onSubmit = (data: FormData) => {
+    console.log(data);
+  };
+
+  // functions
+  const handleCheckboxChange = (donorsId: number) => {
+    setCheckedDonors(donorsId);
+  };
+  const handleTaxDeductionChange = (checked: boolean) => {
+    setTaxDeduction(checked);
+  };
   const handleSetActiveTab = (tabIndex: number) => {
     setActiveTab(tabIndex);
   };
-
   const filteredVolunteers =
     activeTab !== 1
       ? VOLUNTEERS.filter((item) => item.tab_id === activeTab)
@@ -197,6 +254,170 @@ const Home: React.FC = () => {
             or <br /> individuals in need.
           </Typography>
         </div>
+        <div className="bg-neutral-50 rounded-2xl py-8 px-[104px] my-10">
+          <div className="border-b border-neutral-200 pb-4">
+            <Typography
+              variant="subtitle-1"
+              size="semibold"
+              className="text-neutral-900">
+              Let us know about you
+            </Typography>
+          </div>
+          <div className="grid grid-cols-3 my-6 gap-4">
+            <Checkbox
+              label="Donate as an Individual"
+              subLabel="Provide my personal data"
+              checked={checkedDonors === 1}
+              onChange={() => handleCheckboxChange(1)}
+              card
+            />
+            <Checkbox
+              label="Donate as an Organisation"
+              subLabel="Provide organisation data"
+              checked={checkedDonors === 2}
+              onChange={() => handleCheckboxChange(2)}
+              card
+            />
+            <Checkbox
+              label="Donate Anonymously"
+              subLabel="Optionally provide data"
+              checked={checkedDonors === 3}
+              onChange={() => handleCheckboxChange(3)}
+              card
+            />
+          </div>
+          <div className="border-b border-neutral-200 pb-4 mt-4">
+            <Typography
+              variant="subtitle-1"
+              size="semibold"
+              className="text-neutral-900">
+              Let’s complete your information details
+            </Typography>
+          </div>
+          <div className="my-6">
+            <Checkbox
+              label="I wish to have tax deduction"
+              subLabel="You are entitled to a tax-deduction of 2.5 times of your donation amount"
+              checked={isTaxDeduction}
+              onChange={() => handleTaxDeductionChange(!isTaxDeduction)}
+            />
+          </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <FloatingLabelInput label="Name" register={register("name")} />
+                {errors.name && (
+                  <p className="text-red-500 text-sm">{errors.name.message}</p>
+                )}
+              </div>
+              <div>
+                <FloatingLabelInput
+                  label="Email"
+                  register={register("email")}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email.message}</p>
+                )}
+              </div>
+              <div className="flex flex-row gap-x-4">
+                <div className="w-1/3">
+                  <select
+                    name=""
+                    id=""
+                    className="border w-full h-full rounded-xl">
+                    <option value="">ID Type</option>
+                  </select>
+                </div>
+                <div className="w-full">
+                  <FloatingLabelInput
+                    label="Tax Recipient ID"
+                    register={register("taxRecipientId")}
+                  />
+                  {errors.taxRecipientId && (
+                    <p className="text-red-500 text-sm">
+                      {errors.taxRecipientId.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <FloatingLabelInput
+                  label="Tax Recipient Full Name"
+                  register={register("taxRecipientFullName")}
+                />
+                {errors.taxRecipientFullName && (
+                  <p className="text-red-500 text-sm">
+                    {errors.taxRecipientFullName.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <FloatingLabelInput
+                  label="Postal Code"
+                  register={register("postalCode")}
+                />
+                {errors.postalCode && (
+                  <p className="text-red-500 text-sm">
+                    {errors.postalCode.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <FloatingLabelInput
+                  label="Address"
+                  register={register("address")}
+                />
+                {errors.address && (
+                  <p className="text-red-500 text-sm">
+                    {errors.address.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <FloatingLabelInput
+                  label="Unit Number"
+                  register={register("unitNumber")}
+                />
+                {errors.unitNumber && (
+                  <p className="text-red-500 text-sm">
+                    {errors.unitNumber.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <FloatingLabelInput
+                  label="Remarks"
+                  register={register("remarks")}
+                />
+                {errors.remarks && (
+                  <p className="text-red-500 text-sm">
+                    {errors.remarks.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="border-b border-neutral-200 pb-4 mt-4">
+              <Typography
+                variant="subtitle-1"
+                size="semibold"
+                className="text-neutral-900">
+                How much would you like to donate?
+              </Typography>
+            </div>
+
+            <div className="flex justify-center my-10">
+              <Button
+                type="submit"
+                variant={"default"}
+                size={"2xl"}
+                className="gap-x-2">
+                Donate
+                <img src={IcDonate} alt="Donate" />
+              </Button>
+            </div>
+          </form>
+        </div>
       </section>
 
       <section className="py-20 mx-auto container">
@@ -237,7 +458,7 @@ const Home: React.FC = () => {
               key={`volunteer-${volunteer.id}`}
               className="border rounded-2xl p-6 border-neutral-300 mb-6">
               <div className="flex flex-row justify-between">
-                <Label variant={volunteer.category_color} size={"sm"}>
+                <Label variant={volunteer?.category_color} size={"sm"}>
                   {volunteer.category}
                 </Label>
                 <Button href="/#" variant={"link"}>

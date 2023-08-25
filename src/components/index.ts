@@ -5,6 +5,8 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import {Input} from "./Input";
 import Typography from "./Typography";
+import Checkbox from "./Checkbox";
+import FloatingLabelInput from "./FloatingLabelInput";
 
 export {
     Layout,
@@ -14,4 +16,6 @@ export {
     Footer,
     Input,
     Typography,
+    Checkbox,
+    FloatingLabelInput,
 }
