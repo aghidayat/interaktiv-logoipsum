@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+.gradient-neutral-600-500 {
+    @apply bg-gradient-to-r from-neutral-600 to-neutral-500;
+}
+.gradient-neutral-700-600 {
+    @apply bg-gradient-to-r from-neutral-700 to-neutral-600;
+}
+.gradient-neutral-800-600 {
+    @apply bg-gradient-to-r from-neutral-800 to-neutral-600;
+}
+.gradient-neutral-800-700 {
+    @apply bg-gradient-to-r from-neutral-800 to-neutral-700;
+}
+.gradient-primary-600-500 {
+    @apply bg-gradient-to-r from-primary-600 to-primary-500;
+}
+.gradient-primary-700-500 {
+    @apply bg-gradient-to-r from-primary-700 to-primary-500;
+}
+.gradient-primary-800-600 {
+    @apply bg-gradient-to-r from-primary-800 to-primary-600;
+}
+
+.nav-item {
+    @apply relative text-white hover:text-neutral-700 hover:after:border-b-2 hover:after:w-4 hover:after:content-[''] hover:after:absolute hover:after:-bottom-1 hover:after:left-1/2 hover:after:transform hover:after:-translate-x-1/2 hover:after:border-secondary-600;
+}
+
+.nav-item.active {
+    @apply after:border-b-4 after:rounded-xl after:w-4 after:content-[''] after:absolute after:-bottom-1 after:left-1/2 after:transform after:-translate-x-1/2 after:border-secondary-600;
+}
