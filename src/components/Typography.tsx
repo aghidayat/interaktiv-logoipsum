@@ -16,7 +16,7 @@ interface TypographyProps {
     | "overline";
   size?: "regular" | "medium" | "semibold" | "bold";
   className?: string;
-  children: React.ReactNode; // Use the class-variance-authority style
+  children: React.ReactNode;
 }
 
 const Typography: React.FC<TypographyProps> = ({

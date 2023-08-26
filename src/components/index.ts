@@ -7,6 +7,7 @@ import {Input} from "./Input";
 import Typography from "./Typography";
 import Checkbox from "./Checkbox";
 import FloatingLabelInput from "./FloatingLabelInput";
+import Modal from "./Modal";
 
 export {
     Layout,
@@ -18,4 +19,5 @@ export {
     Typography,
     Checkbox,
     FloatingLabelInput,
+    Modal,
 }

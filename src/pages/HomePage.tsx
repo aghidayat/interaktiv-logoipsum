@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { useNavigate } from "react-router-dom";
 
 import {
   Layout,
@@ -13,6 +14,7 @@ import {
   Typography,
   Checkbox,
   FloatingLabelInput,
+  Modal,
 } from "@components";
 
 import ImgHeroDonation from "@/assets/hero-donation.svg";
@@ -26,6 +28,10 @@ import IcSprinkle from "@/assets/sprinkle1.svg";
 import IcMaps from "@/assets/map.svg";
 import IcDate from "@/assets/calendar.svg";
 import IcDonate from "@/assets/donate.svg";
+import IcCC from "@/assets/cc.svg";
+import IcPaynow from "@/assets/paynow.svg";
+import IcInfo from "@/assets/information.svg";
+import IcClose from "@/assets/close.svg";
 
 const TABS = [
   {
@@ -106,6 +112,10 @@ type FormData = {
   address?: string;
   unitNumber?: string;
   remarks?: string;
+  amount: number;
+  taxDeduction: boolean;
+  donors: number;
+  payment: number;
 };
 
 const schema = yup
@@ -120,34 +130,64 @@ const Home: React.FC = () => {
   const [activeTab, setActiveTab] = useState<number>(1);
   const [checkedDonors, setCheckedDonors] = useState<number>(1);
   const [isTaxDeduction, setTaxDeduction] = useState<boolean>(true);
+  const [payment, setPayment] = useState<number>();
+  const [isAgree, setAgree] = useState<boolean>(false);
+  const [isAgreementModalOpen, setAgreementModalOpen] = useState(false);
 
   // hooks
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   });
+  const navigate = useNavigate();
 
   const onSubmit = (data: FormData) => {
     console.log(data);
+    localStorage.setItem("temporaryData", JSON.stringify(data));
+    return navigate("/success");
   };
 
   // functions
   const handleCheckboxChange = (donorsId: number) => {
+    setValue("donors", donorsId);
     setCheckedDonors(donorsId);
   };
   const handleTaxDeductionChange = (checked: boolean) => {
+    setValue("taxDeduction", checked);
     setTaxDeduction(checked);
   };
   const handleSetActiveTab = (tabIndex: number) => {
     setActiveTab(tabIndex);
   };
+  const handleChangePayment = (paymentId: number) => {
+    setValue("payment", paymentId);
+    setPayment(paymentId);
+  };
+  const openModalAgreement = () => {
+    setAgreementModalOpen(true);
+  };
+  const closeModalAgreement = () => {
+    setAgreementModalOpen(false);
+  };
+  const handleAgreement = () => {
+    setAgreementModalOpen(false);
+    setAgree(true);
+  };
   const filteredVolunteers =
     activeTab !== 1
       ? VOLUNTEERS.filter((item) => item.tab_id === activeTab)
       : VOLUNTEERS;
+
+  // effects
+  useEffect(() => {
+    // Set default values
+    setValue("taxDeduction", true);
+    setValue("donors", 1);
+  }, []);
 
   return (
     <Layout>
@@ -322,16 +362,18 @@ const Home: React.FC = () => {
               <div className="flex flex-row gap-x-4">
                 <div className="w-1/3">
                   <select
-                    name=""
-                    id=""
-                    className="border w-full h-full rounded-xl">
+                    disabled={!isTaxDeduction}
+                    className="border w-full h-full rounded-xl px-3">
                     <option value="">ID Type</option>
+                    <option value="NRIC">NRIC</option>
+                    <option value="UEN">UEN</option>
                   </select>
                 </div>
                 <div className="w-full">
                   <FloatingLabelInput
                     label="Tax Recipient ID"
                     register={register("taxRecipientId")}
+                    disabled={!isTaxDeduction}
                   />
                   {errors.taxRecipientId && (
                     <p className="text-red-500 text-sm">
@@ -344,6 +386,7 @@ const Home: React.FC = () => {
                 <FloatingLabelInput
                   label="Tax Recipient Full Name"
                   register={register("taxRecipientFullName")}
+                  disabled={!isTaxDeduction}
                 />
                 {errors.taxRecipientFullName && (
                   <p className="text-red-500 text-sm">
@@ -397,7 +440,7 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-            <div className="border-b border-neutral-200 pb-4 mt-4">
+            <div className="border-b border-neutral-200 pb-4 my-8">
               <Typography
                 variant="subtitle-1"
                 size="semibold"
@@ -406,12 +449,202 @@ const Home: React.FC = () => {
               </Typography>
             </div>
 
+            <div className="flex flex-col w-1/3 mx-auto justify-center">
+              <div>
+                <FloatingLabelInput
+                  label="Donation Amount"
+                  register={register("amount")}
+                />
+                {errors.amount && (
+                  <p className="text-red-500 text-sm">
+                    {errors.amount.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 my-5 gap-4">
+                <div
+                  onClick={() => handleChangePayment(1)}
+                  className={`border-2 p-4 rounded-xl bg-white flex flex-row items-center gap-x-2 cursor-pointer ${
+                    payment === 1
+                      ? "border-secondary-500"
+                      : "border-neutral-300"
+                  }`}>
+                  <img src={IcCC} alt="Credit Card" />
+                  <Typography
+                    variant="body-2"
+                    size="semibold"
+                    className="text-neutral-800">
+                    Credit Card
+                  </Typography>
+                </div>
+                <div
+                  onClick={() => handleChangePayment(2)}
+                  className={`border-2 p-4 rounded-xl bg-white flex flex-row items-center gap-x-2 cursor-pointer ${
+                    payment === 2
+                      ? "border-secondary-500"
+                      : "border-neutral-300"
+                  }`}>
+                  <img src={IcPaynow} alt="Paynow" />
+                  <Typography
+                    variant="body-2"
+                    size="semibold"
+                    className="text-neutral-800">
+                    PayNow
+                  </Typography>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label
+                  className="flex flex-row gap-x-2 cursor-pointer"
+                  onClick={openModalAgreement}>
+                  <Checkbox
+                    label={
+                      <Typography
+                        variant="body-1"
+                        size="medium"
+                        className="text-neutral-700">
+                        I agree with the{" "}
+                        <span className="text-info-500">
+                          terms and conditions
+                        </span>
+                      </Typography>
+                    }
+                    checked={isAgree}
+                    onChange={() => null}
+                  />
+                </label>
+              </div>
+
+              <Modal
+                isOpen={isAgreementModalOpen}
+                onClose={closeModalAgreement}>
+                <div className="flex flex-row justify-between p-5 flex-1">
+                  <div className="flex flex-row gap-x-4">
+                    <img src={IcInfo} alt="information" />
+                    <div>
+                      <Typography
+                        variant="subtitle-2"
+                        size="semibold"
+                        className="text-neutral-900">
+                        Terms and Conditions
+                      </Typography>
+                      <Typography
+                        variant="body-2"
+                        size="regular"
+                        className="text-neutral-500">
+                        Last updated: 20 October 2022{" "}
+                      </Typography>
+                    </div>
+                  </div>
+                  <img
+                    src={IcClose}
+                    alt="close"
+                    onClick={closeModalAgreement}
+                    className="cursor-pointer"
+                  />
+                </div>
+                <div className="px-5">
+                  <Typography
+                    size="regular"
+                    variant="body-1"
+                    className="text-neutral-700">
+                    Company Name operates the Website Name website, which
+                    provides the SERVICE. This page is used to inform website
+                    visitors regarding our policies with the collection, use,
+                    and disclosure of Personal Information if anyone decided to
+                    use our Service, the Website Name website. If you choose to
+                    use our Service, then you agree to the collection and use of
+                    information in relation with this policy. The Personal
+                    Information that we collect are used for providing and
+                    improving the Service. We will not use or share your
+                    information with anyone except as described in this Privacy
+                    Policy. The terms used in this Privacy Policy have the same
+                    meanings as in our Terms and Conditions, which is accessible
+                    at Website URL, unless otherwise defined in this Privacy
+                    Policy. Information Collection and Use For a better
+                    experience while using our Service, we may require you to
+                    provide us with certain personally identifiable information,
+                    including but not limited to your name, phone number, and
+                    postal address. The information that we collect will be used
+                    to contact or identify you. Log Data We want to inform you
+                    that whenever you visit our Service, we collect information
+                    that your browser sends to us that is called Log Data. This
+                    Log Data may include information such as your computer's
+                    Internet Protocol (“IP”) address, browser version, pages of
+                    our Service that you visit, the time and date of your visit,
+                    the time spent on those pages, and other statistics. Cookies
+                    Cookies are files with small amount of data that is commonly
+                    used an anonymous unique identifier. These are sent to your
+                    browser from the website that you visit and are stored on
+                    your computer's hard drive. Our website uses these “cookies”
+                    to collection information and to improve our Service. You
+                    have the option to either accept or refuse these cookies,
+                    and know when a cookie is being sent to your computer. If
+                    you choose to refuse our cookies, you may not be able to use
+                    some portions of our Service. Service Providers We may
+                    employ third-party companies and individuals due to the
+                    following reasons: To facilitate our Service; To provide the
+                    Service on our behalf; To perform Service-related services;
+                    or To assist us in analyzing how our Service is used. We
+                    want to inform our Service users that these third parties
+                    have access to your Personal Information. The reason is to
+                    perform the tasks assigned to them on our behalf. However,
+                    they are obligated not to disclose or use the information
+                    for any other purpose. Security We value your trust in
+                    providing us your Personal Information, thus we are striving
+                    to use commercially acceptable means of protecting it. But
+                    remember that no method of transmission over the internet,
+                    or method of electronic storage is 100% secure and reliable,
+                    and we cannot guarantee its absolute security. Links to
+                    Other Sites Our Service may contain links to other sites. If
+                    you click on a third-party link, you will be directed to
+                    that site. Note that these external sites are not operated
+                    by us. Therefore, we strongly advise you to review the
+                    Privacy Policy of these websites. We have no control over,
+                    and assume no responsibility for the content, privacy
+                    policies, or practices of any third-party sites or services.
+                    Children's Privacy Our Services do not address anyone under
+                    the age of 13. We do not knowingly collect personal
+                    identifiable information from children under 13. In the case
+                    we discover that a child under 13 has provided us with
+                    personal information, we immediately delete this from our
+                    servers. If you are a parent or guardian and you are aware
+                    that your child has provided us with personal information,
+                    please contact us so that we will be able to do necessary
+                    actions. Changes to This Privacy Policy We may update our
+                    Privacy Policy from time to time. Thus, we advise you to
+                    review this page periodically for any changes. We will
+                    notify you of any changes by posting the new Privacy Policy
+                    on this page. These changes are effective immediately, after
+                    they are posted on this page. Contact Us If you have any
+                    questions or suggestions about our Privacy Policy, do not
+                    hesitate to contact us.
+                  </Typography>
+                </div>
+                <div className="border-t border-neutral-200 mt-5 p-5 flex justify-end gap-x-4">
+                  <Button
+                    variant="white"
+                    type="button"
+                    className="border"
+                    onClick={closeModalAgreement}>
+                    Close
+                  </Button>
+                  <Button type="button" onClick={handleAgreement}>
+                    I Agree
+                  </Button>
+                </div>
+              </Modal>
+            </div>
+
             <div className="flex justify-center my-10">
               <Button
                 type="submit"
+                disabled={!isAgree}
                 variant={"default"}
                 size={"2xl"}
-                className="gap-x-2">
+                className="gap-x-2 px-8">
                 Donate
                 <img src={IcDonate} alt="Donate" />
               </Button>

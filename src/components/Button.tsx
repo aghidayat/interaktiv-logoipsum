@@ -5,11 +5,12 @@ import { cn } from "@utils";
 import IcLink from "@/assets/righttop.svg";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
+  "inline-flex items-center justify-center rounded-xl text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
   {
     variants: {
       variant: {
-        default: "bg-primary-500 text-white hover:bg-primary-600",
+        default:
+          "bg-primary-500 text-white hover:bg-primary-600 disabled:bg-primary-300",
         warning: "bg-secondary-500 text-white hover:bg-secondary-600",
         info: "bg-primary-50 text-primary-700 hover:bg-primary-100",
         white: "bg-white text-neutral-600 hover:bg-primary-50",

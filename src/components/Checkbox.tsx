@@ -3,8 +3,8 @@ import { Typography } from ".";
 import IcChecked from "@/assets/checklist.svg";
 
 type CheckboxProps = {
-  label: string;
-  subLabel: string;
+  label: string | React.ReactNode;
+  subLabel?: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
   card?: boolean;
