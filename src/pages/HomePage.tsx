@@ -120,68 +120,87 @@ type FormData = {
   agree: boolean;
 };
 
-const schema = yup
-  .object({
-    organization_name: yup.string().when("donors", {
-      is: (donors: number) => donors === 2,
-      then: (schema) => schema.required("Organization Name is required"),
-      otherwise: (schema) => schema.optional(),
-    }),
-    name: yup.string().when("donors", {
-      is: (donors: number) => donors !== 3,
-      then: (schema) => schema.required("Name is required"),
-      otherwise: (schema) => schema.optional(),
-    }),
-    email: yup.string().email("Invalid email").required("Email is required"),
-    taxDeduction: yup.boolean(),
-    idType: yup.string().when("taxDeduction", {
-      is: true,
-      then: (schema) => schema.required("ID Type is required"),
-      otherwise: (schema) => schema.optional(),
-    }),
-    taxRecipientId: yup.string().when("taxDeduction", {
+const schema = yup.object({
+  organization_name: yup.string().when("donors", {
+    is: (donors: number) => donors === 2,
+    then: (schema) => schema.required("Organization Name is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
+  name: yup.string().when("donors", {
+    is: (donors: number) => donors !== 3,
+    then: (schema) => schema.required("Name is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
+  email: yup.string().email("Invalid email").required("Email is required"),
+  taxDeduction: yup.boolean(),
+  idType: yup.string().when("taxDeduction", {
+    is: true,
+    then: (schema) => schema.required("ID Type is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
+  taxRecipientId: yup
+    .string()
+    .when("taxDeduction", {
       is: true,
       then: (schema) => schema.required("Tax Recipient ID is required"),
       otherwise: (schema) => schema.optional(),
-    }),
-    taxRecipientFullName: yup.string().when("taxDeduction", {
-      is: true,
-      then: (schema) => schema.required("Tax Recipient Full Name is required"),
-      otherwise: (schema) => schema.optional(),
-    }),
-    postalCode: yup.string().when("donors", {
-      is: (donors: number) => donors !== 3,
-      then: (schema) =>
-        schema.required("Postal Code is required").min(6).max(6),
-      otherwise: (schema) => schema.optional(),
-    }),
-    address: yup.string().when("donors", {
-      is: (donors: number) => donors !== 3,
-      then: (schema) => schema.required("Address is required"),
-      otherwise: (schema) => schema.optional(),
-    }),
-    unitNumber: yup.string().when("donors", {
-      is: (donors: number) => donors !== 3,
+    })
+    .when("idType", {
+      is: "NRIC",
       then: (schema) =>
         schema
-          .required("Unit Number is required")
+          .matches(/^[STFG]\d{7}[A-JZ]$/, "Invalid NRIC format")
+          .typeError("Invalid NRIC format"),
+    })
+    .when("idType", {
+      is: "UEN",
+      then: (schema) =>
+        schema
           .matches(
-            /^[\d-]+$/,
-            "Unit Number must only contain numbers and hyphens",
+            /^[0-9]{8}[A-HJ-NP-Z]$/,
+            "Invalid UEN format: 8 digits followed by a letter (excluding I, O, U)",
           )
-          .typeError("Unit Number must only contain numbers and hyphens"),
-      otherwise: (schema) => schema.optional(),
+          .typeError(
+            "Invalid UEN format: 8 digits followed by a letter (excluding I, O, U)",
+          ),
     }),
-    remarks: yup.string().optional(),
-    amount: yup
-      .number()
-      .required("Amount is required")
-      .typeError("Amount must be a number")
-      .positive("Amount must be positive")
-      .min(0.01, "Amount must be at least 0.01"),
-    agree: yup.boolean().required(),
-  })
-  .required();
+  taxRecipientFullName: yup.string().when("taxDeduction", {
+    is: true,
+    then: (schema) => schema.required("Tax Recipient Full Name is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
+  postalCode: yup.string().when("donors", {
+    is: (donors: number) => donors !== 3,
+    then: (schema) => schema.required("Postal Code is required").min(6).max(6),
+    otherwise: (schema) => schema.optional(),
+  }),
+  address: yup.string().when("donors", {
+    is: (donors: number) => donors !== 3,
+    then: (schema) => schema.required("Address is required"),
+    otherwise: (schema) => schema.optional(),
+  }),
+  unitNumber: yup.string().when("donors", {
+    is: (donors: number) => donors !== 3,
+    then: (schema) =>
+      schema
+        .required("Unit Number is required")
+        .matches(
+          /^[\d-]+$/,
+          "Unit Number must only contain numbers and hyphens",
+        )
+        .typeError("Unit Number must only contain numbers and hyphens"),
+    otherwise: (schema) => schema.optional(),
+  }),
+  remarks: yup.string().optional(),
+  amount: yup
+    .number()
+    .required("Amount is required")
+    .typeError("Amount must be a number")
+    .positive("Amount must be positive")
+    .min(0.01, "Amount must be at least 0.01"),
+  agree: yup.boolean().required(),
+  payment: yup.number().required(),
+});
 
 const Home: React.FC = () => {
   // states
@@ -212,6 +231,7 @@ const Home: React.FC = () => {
   // functions
   const handleCheckboxChange = (donorsId: number) => {
     setValue("donors", donorsId);
+    setValue("idType", "UEN");
     setCheckedDonors(donorsId);
   };
   const handleTaxDeductionChange = (checked: boolean) => {
@@ -438,8 +458,12 @@ const Home: React.FC = () => {
                         errors.idType ? "border-danger-600" : ""
                       }`}>
                       <option value="">ID Type</option>
-                      <option value="NRIC">NRIC</option>
-                      <option value="UEN">UEN</option>
+                      <option value="NRIC" selected={checkedDonors === 1}>
+                        NRIC
+                      </option>
+                      <option value="UEN" selected={checkedDonors === 2}>
+                        UEN
+                      </option>
                     </select>
                   </div>
                   {errors.idType && (
@@ -514,13 +538,18 @@ const Home: React.FC = () => {
             <div className="flex flex-col w-1/3 mx-auto justify-center">
               <div className="my-2">
                 <FloatingLabelInput
-                  label="Donation Amount"
+                  label="Donation Amount S$"
                   register={register("amount")}
                   error={errors.amount?.message}
                 />
               </div>
 
-              <div className="grid grid-cols-2 my-5 gap-4">
+              <div
+                className={`grid grid-cols-2 my-3 gap-4 ${
+                  errors.payment
+                    ? "border-danger-500 border p-2 rounded-xl"
+                    : ""
+                }`}>
                 <div
                   onClick={() => handleChangePayment(1)}
                   className={`border-2 p-4 rounded-xl bg-white flex flex-row items-center gap-x-2 cursor-pointer ${
@@ -552,6 +581,15 @@ const Home: React.FC = () => {
                   </Typography>
                 </div>
               </div>
+
+              {errors.payment && (
+                <Typography
+                  className="text-danger-600 text-center"
+                  variant="body-2"
+                  size="regular">
+                  {errors.payment.message}
+                </Typography>
+              )}
 
               <div className="mt-4">
                 <label
