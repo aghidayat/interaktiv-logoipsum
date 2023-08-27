@@ -287,7 +287,7 @@ const Home: React.FC = () => {
               just donating money or volunteering your time
             </Typography>
           </div>
-          <div className="grid grid-cols-3 hover:grid-cols-4 gap-5 mt-5">
+          <div className="grid md:grid-cols-3 md:hover:grid-cols-4 gap-5 mt-5">
             <div className="group relative border h-52 p-8 rounded-lg bg-primary-500 border-primary-400 justify-between flex hover:col-span-2 col-span-1">
               <div className="flex flex-col">
                 <Typography variant="subtitle-1" size="semibold">
@@ -373,7 +373,7 @@ const Home: React.FC = () => {
             or <br /> individuals in need.
           </Typography>
         </div>
-        <div className="bg-neutral-50 rounded-2xl py-8 px-[104px] my-10">
+        <div className="bg-neutral-50 rounded-2xl py-8 md:px-[104px] my-10">
           <div className="border-b border-neutral-200 pb-4">
             <Typography
               variant="subtitle-1"
@@ -382,7 +382,7 @@ const Home: React.FC = () => {
               Let us know about you
             </Typography>
           </div>
-          <div className="grid grid-cols-3 my-6 gap-4">
+          <div className="grid md:grid-cols-3 my-6 gap-4">
             <Checkbox
               label="Donate as an Individual"
               subLabel="Provide my personal data"
@@ -422,7 +422,7 @@ const Home: React.FC = () => {
             />
           </div>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-4">
               {checkedDonors === 2 && (
                 <div>
                   <FloatingLabelInput
@@ -537,7 +537,7 @@ const Home: React.FC = () => {
               </Typography>
             </div>
 
-            <div className="flex flex-col w-1/3 mx-auto justify-center">
+            <div className="flex flex-col md:w-1/3 mx-auto justify-center">
               <div className="my-2">
                 <FloatingLabelInput
                   label="Donation Amount S$"
@@ -857,7 +857,7 @@ const Home: React.FC = () => {
             sense of unity and shared experiences.
           </Typography>
         </div>
-        <div className="grid grid-cols-4 gap-8 my-10">
+        <div className="grid md:grid-cols-4 gap-8 my-10">
           <div className="border rounded-2xl p-4 flex flex-col justify-between h-[270px]">
             <img src={IcCleanup} alt="cleanup" className="h-20 w-20" />
             <div>
@@ -941,7 +941,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      <section className="bg-neutral-100 h-[212px] mx-auto container flex flex-row justify-between items-center px-12 my-24 rounded-xl">
+      <section className="bg-neutral-100 h-[212px] mx-auto container flex flex-col md:flex-row justify-between items-center px-12 my-24 rounded-xl">
         <div className="space-y-2">
           <Typography variant="h5" size="semibold" className="text-neutral-900">
             Keep up to date with our newsletter
