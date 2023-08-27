@@ -138,32 +138,32 @@ const schema = yup.object({
     then: (schema) => schema.required("ID Type is required"),
     otherwise: (schema) => schema.optional(),
   }),
-  taxRecipientId: yup
-    .string()
-    .when("taxDeduction", {
-      is: true,
-      then: (schema) => schema.required("Tax Recipient ID is required"),
-      otherwise: (schema) => schema.optional(),
-    })
-    .when("idType", {
-      is: "NRIC",
-      then: (schema) =>
-        schema
-          .matches(/^[STFG]\d{7}[A-JZ]$/, "Invalid NRIC format")
-          .typeError("Invalid NRIC format"),
-    })
-    .when("idType", {
-      is: "UEN",
-      then: (schema) =>
-        schema
-          .matches(
-            /^[0-9]{8}[A-HJ-NP-Z]$/,
-            "Invalid UEN format: 8 digits followed by a letter (excluding I, O, U)",
-          )
-          .typeError(
-            "Invalid UEN format: 8 digits followed by a letter (excluding I, O, U)",
-          ),
-    }),
+  taxRecipientId: yup.string().when("taxDeduction", {
+    is: true,
+    then: (schema) =>
+      schema
+        .required("Tax Recipient ID is required")
+        .when("idType", {
+          is: "NRIC",
+          then: (schema) =>
+            schema
+              .matches(/^[STFG]\d{7}[A-JZ]$/, "Invalid NRIC format")
+              .typeError("Invalid NRIC format"),
+        })
+        .when("idType", {
+          is: "UEN",
+          then: (schema) =>
+            schema
+              .matches(
+                /^[0-9]{8}[A-HJ-NP-Z]$/,
+                "Invalid UEN format: 8 digits followed by a letter (excluding I, O, U)",
+              )
+              .typeError(
+                "Invalid UEN format: 8 digits followed by a letter (excluding I, O, U)",
+              ),
+        }),
+    otherwise: (schema) => schema.optional(),
+  }),
   taxRecipientFullName: yup.string().when("taxDeduction", {
     is: true,
     then: (schema) => schema.required("Tax Recipient Full Name is required"),
@@ -457,7 +457,9 @@ const Home: React.FC = () => {
                       className={`border w-full rounded-xl px-3 h-[52px] ${
                         errors.idType ? "border-danger-600" : ""
                       }`}>
-                      <option value="">ID Type</option>
+                      <option value="" selected={!isTaxDeduction}>
+                        ID Type
+                      </option>
                       <option value="NRIC" selected={checkedDonors === 1}>
                         NRIC
                       </option>
