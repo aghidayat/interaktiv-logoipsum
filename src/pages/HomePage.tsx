@@ -103,25 +103,83 @@ const VOLUNTEERS = [
 ];
 
 type FormData = {
+  organization_name?: string;
   name: string;
   email: string;
   idType?: string;
   taxRecipientId?: string;
   taxRecipientFullName?: string;
-  postalCode?: string;
-  address?: string;
+  postalCode: number;
+  address: string;
   unitNumber?: string;
   remarks?: string;
   amount: number;
   taxDeduction: boolean;
   donors: number;
   payment: number;
+  agree: boolean;
 };
 
 const schema = yup
   .object({
-    name: yup.string().required("Name is required"),
+    organization_name: yup.string().when("donors", {
+      is: (donors: number) => donors === 2,
+      then: (schema) => schema.required("Organization Name is required"),
+      otherwise: (schema) => schema.optional(),
+    }),
+    name: yup.string().when("donors", {
+      is: (donors: number) => donors !== 3,
+      then: (schema) => schema.required("Name is required"),
+      otherwise: (schema) => schema.optional(),
+    }),
     email: yup.string().email("Invalid email").required("Email is required"),
+    taxDeduction: yup.boolean(),
+    idType: yup.string().when("taxDeduction", {
+      is: true,
+      then: (schema) => schema.required("ID Type is required"),
+      otherwise: (schema) => schema.optional(),
+    }),
+    taxRecipientId: yup.string().when("taxDeduction", {
+      is: true,
+      then: (schema) => schema.required("Tax Recipient ID is required"),
+      otherwise: (schema) => schema.optional(),
+    }),
+    taxRecipientFullName: yup.string().when("taxDeduction", {
+      is: true,
+      then: (schema) => schema.required("Tax Recipient Full Name is required"),
+      otherwise: (schema) => schema.optional(),
+    }),
+    postalCode: yup.string().when("donors", {
+      is: (donors: number) => donors !== 3,
+      then: (schema) =>
+        schema.required("Postal Code is required").min(6).max(6),
+      otherwise: (schema) => schema.optional(),
+    }),
+    address: yup.string().when("donors", {
+      is: (donors: number) => donors !== 3,
+      then: (schema) => schema.required("Address is required"),
+      otherwise: (schema) => schema.optional(),
+    }),
+    unitNumber: yup.string().when("donors", {
+      is: (donors: number) => donors !== 3,
+      then: (schema) =>
+        schema
+          .required("Unit Number is required")
+          .matches(
+            /^[\d-]+$/,
+            "Unit Number must only contain numbers and hyphens",
+          )
+          .typeError("Unit Number must only contain numbers and hyphens"),
+      otherwise: (schema) => schema.optional(),
+    }),
+    remarks: yup.string().optional(),
+    amount: yup
+      .number()
+      .required("Amount is required")
+      .typeError("Amount must be a number")
+      .positive("Amount must be positive")
+      .min(0.01, "Amount must be at least 0.01"),
+    agree: yup.boolean().required(),
   })
   .required();
 
@@ -174,8 +232,9 @@ const Home: React.FC = () => {
     setAgreementModalOpen(false);
   };
   const handleAgreement = () => {
-    setAgreementModalOpen(false);
     setAgree(true);
+    setValue("agree", true);
+    setAgreementModalOpen(false);
   };
   const filteredVolunteers =
     activeTab !== 1
@@ -344,42 +403,61 @@ const Home: React.FC = () => {
           </div>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <FloatingLabelInput label="Name" register={register("name")} />
-                {errors.name && (
-                  <p className="text-red-500 text-sm">{errors.name.message}</p>
-                )}
-              </div>
+              {checkedDonors === 2 && (
+                <div>
+                  <FloatingLabelInput
+                    label="Organization Name"
+                    register={register("organization_name")}
+                    error={errors.organization_name?.message}
+                  />
+                </div>
+              )}
+              {checkedDonors !== 3 && (
+                <div>
+                  <FloatingLabelInput
+                    label="Name"
+                    register={register("name")}
+                    error={errors.name?.message}
+                  />
+                </div>
+              )}
               <div>
                 <FloatingLabelInput
                   label="Email"
                   register={register("email")}
+                  error={errors.email?.message}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-sm">{errors.email.message}</p>
-                )}
               </div>
               <div className="flex flex-row gap-x-4">
-                <div className="w-1/3">
-                  <select
-                    disabled={!isTaxDeduction}
-                    className="border w-full h-full rounded-xl px-3">
-                    <option value="">ID Type</option>
-                    <option value="NRIC">NRIC</option>
-                    <option value="UEN">UEN</option>
-                  </select>
+                <div className="w-1/2">
+                  <div>
+                    <select
+                      disabled={!isTaxDeduction}
+                      {...register("idType")}
+                      className={`border w-full rounded-xl px-3 h-[52px] ${
+                        errors.idType ? "border-danger-600" : ""
+                      }`}>
+                      <option value="">ID Type</option>
+                      <option value="NRIC">NRIC</option>
+                      <option value="UEN">UEN</option>
+                    </select>
+                  </div>
+                  {errors.idType && (
+                    <Typography
+                      className="text-danger-600 mt-2"
+                      variant="body-2"
+                      size="regular">
+                      {errors.idType.message}
+                    </Typography>
+                  )}
                 </div>
                 <div className="w-full">
                   <FloatingLabelInput
                     label="Tax Recipient ID"
                     register={register("taxRecipientId")}
                     disabled={!isTaxDeduction}
+                    error={errors.taxRecipientId?.message}
                   />
-                  {errors.taxRecipientId && (
-                    <p className="text-red-500 text-sm">
-                      {errors.taxRecipientId.message}
-                    </p>
-                  )}
                 </div>
               </div>
               <div>
@@ -387,56 +465,40 @@ const Home: React.FC = () => {
                   label="Tax Recipient Full Name"
                   register={register("taxRecipientFullName")}
                   disabled={!isTaxDeduction}
+                  error={errors.taxRecipientFullName?.message}
                 />
-                {errors.taxRecipientFullName && (
-                  <p className="text-red-500 text-sm">
-                    {errors.taxRecipientFullName.message}
-                  </p>
-                )}
               </div>
-              <div>
-                <FloatingLabelInput
-                  label="Postal Code"
-                  register={register("postalCode")}
-                />
-                {errors.postalCode && (
-                  <p className="text-red-500 text-sm">
-                    {errors.postalCode.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                <FloatingLabelInput
-                  label="Address"
-                  register={register("address")}
-                />
-                {errors.address && (
-                  <p className="text-red-500 text-sm">
-                    {errors.address.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                <FloatingLabelInput
-                  label="Unit Number"
-                  register={register("unitNumber")}
-                />
-                {errors.unitNumber && (
-                  <p className="text-red-500 text-sm">
-                    {errors.unitNumber.message}
-                  </p>
-                )}
-              </div>
+              {checkedDonors !== 3 && (
+                <>
+                  <div>
+                    <FloatingLabelInput
+                      label="Postal Code"
+                      register={register("postalCode")}
+                      error={errors.postalCode?.message}
+                    />
+                  </div>
+                  <div>
+                    <FloatingLabelInput
+                      label="Address"
+                      register={register("address")}
+                      error={errors.address?.message}
+                    />
+                  </div>
+                  <div>
+                    <FloatingLabelInput
+                      label="Unit Number"
+                      register={register("unitNumber")}
+                      error={errors.unitNumber?.message}
+                    />
+                  </div>
+                </>
+              )}
               <div>
                 <FloatingLabelInput
                   label="Remarks"
                   register={register("remarks")}
+                  error={errors.remarks?.message}
                 />
-                {errors.remarks && (
-                  <p className="text-red-500 text-sm">
-                    {errors.remarks.message}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -450,16 +512,12 @@ const Home: React.FC = () => {
             </div>
 
             <div className="flex flex-col w-1/3 mx-auto justify-center">
-              <div>
+              <div className="my-2">
                 <FloatingLabelInput
                   label="Donation Amount"
                   register={register("amount")}
+                  error={errors.amount?.message}
                 />
-                {errors.amount && (
-                  <p className="text-red-500 text-sm">
-                    {errors.amount.message}
-                  </p>
-                )}
               </div>
 
               <div className="grid grid-cols-2 my-5 gap-4">

@@ -1,4 +1,14 @@
 import React from "react";
+import {
+  PDFViewer,
+  Page,
+  Text,
+  View,
+  Document,
+  StyleSheet,
+} from "@react-pdf/renderer";
+import { saveAs } from "file-saver";
+
 import { Button, Input, Label, Layout, Typography } from "@components";
 import { Link } from "react-router-dom";
 import { buttonVariants } from "@/components/Button";
@@ -20,7 +30,12 @@ const SuccessPage: React.FC = () => {
     taxRecipientFullName,
     idType,
     taxRecipientId,
+    payment,
   } = parsedTemporaryData;
+
+  const handleDownload = () => {
+    alert("download");
+  };
 
   return (
     <Layout>
@@ -181,47 +196,47 @@ const SuccessPage: React.FC = () => {
               </Typography>
             </div>
 
-            <Typography
-              variant="subtitle-2"
-              size="semibold"
-              className="text-neutral-900 mt-6 mb-2">
-              Tax Deduction Information
-            </Typography>
+            {taxDeduction && (
+              <>
+                <Typography
+                  variant="subtitle-2"
+                  size="semibold"
+                  className="text-neutral-900 mt-6 mb-2">
+                  Tax Deduction Information
+                </Typography>
 
-            <div className="flex flex-row gap-x-5">
-              <div className="flex flex-col gap-y-2">
-                <Typography
-                  className="text-neutral-500"
-                  variant="body-1"
-                  size="regular">
-                  Tax Recipient Full Name
-                </Typography>
-                <Typography
-                  className="text-neutral-900"
-                  variant="body-1"
-                  size="regular">
-                  {taxRecipientFullName}
-                </Typography>
-              </div>
-              <div className="flex flex-col gap-y-2">
-                <Typography
-                  className="text-neutral-500"
-                  variant="body-1"
-                  size="regular">
-                  Tax Recipient ID No.
-                </Typography>
-                <Typography
-                  className="text-neutral-900"
-                  variant="body-1"
-                  size="regular">
-                  {taxRecipientId}
-                </Typography>
-              </div>
-            </div>
-
-            {/* <Typography>{taxDeduction}</Typography>
-            <Typography>{donors}</Typography>
-            <Typography>{idType}</Typography> */}
+                <div className="flex flex-row gap-x-5">
+                  <div className="flex flex-col gap-y-2">
+                    <Typography
+                      className="text-neutral-500"
+                      variant="body-1"
+                      size="regular">
+                      Tax Recipient Full Name
+                    </Typography>
+                    <Typography
+                      className="text-neutral-900"
+                      variant="body-1"
+                      size="regular">
+                      {taxRecipientFullName}
+                    </Typography>
+                  </div>
+                  <div className="flex flex-col gap-y-2">
+                    <Typography
+                      className="text-neutral-500"
+                      variant="body-1"
+                      size="regular">
+                      Tax Recipient ID No.
+                    </Typography>
+                    <Typography
+                      className="text-neutral-900"
+                      variant="body-1"
+                      size="regular">
+                      {taxRecipientId}
+                    </Typography>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className="border rounded-2xl bg-white p-5">
@@ -231,6 +246,7 @@ const SuccessPage: React.FC = () => {
           <div className="flex flex-row gap-x-4 mt-5">
             <Button variant={"info"}>Share Donation</Button>
             <Button
+              onClick={handleDownload}
               variant={"white"}
               className="border flex flex-row gap-x-2 items-center">
               Download PDF

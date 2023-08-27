@@ -2,6 +2,9 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
 const instance: AxiosInstance = axios.create({
   baseURL: 'https://api.someexample.com', // Replace with API base URL
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // Request interceptor
